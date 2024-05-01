@@ -62,7 +62,7 @@ export class AppComponent implements OnInit {
       }
     },
     {
-      headerName: "Tổng", field: "sum", width: 80
+      headerName: "Tổng", field: "sum", width: 100, cellStyle: {'text-align': 'right'}
     },
   ];
 
@@ -102,6 +102,7 @@ export class AppComponent implements OnInit {
     .filter(key => key.startsWith('score'))
     .sort((a, b) => Number(b.slice(5)) - Number(a.slice(5)))
     .find(key => this.rowData.some(row => !!row[key]));
+    this.latestGame = this.latestGame ? ('score' + (Number(this.latestGame.slice(5)) + 1)) : 'score1';
   }
 
   reset() {
