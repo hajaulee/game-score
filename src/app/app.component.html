@@ -1,5 +1,39 @@
-<div style="width: 98vw; margin: auto;">
-  <ag-grid-angular #scoreTables class="ag-theme-quartz" style="height: calc(100vh - 100px);" [rowData]="rowData"
+<mat-expansion-panel [(expanded)]="settingOpened">
+  <mat-expansion-panel-header>
+    <mat-panel-title>
+      Cài đặt
+    </mat-panel-title>
+    <mat-panel-description>
+      Người chơi, Số tiền,...
+    </mat-panel-description>
+  </mat-expansion-panel-header>
+  <div>
+    <p>
+      <mat-form-field appearance="outline">
+        <mat-label>Nhập tên những người chơi</mat-label>
+        <input matInput [placeholder]="defaultPlayes" [(ngModel)]="playerInput" (ngModelChange)="parsePlayers()">
+        <mat-hint>Cách nhau bằng dấu phẩy</mat-hint>
+      </mat-form-field>
+    </p>
+    <p>
+      <mat-form-field appearance="outline">
+        <mat-label>Nhập các mức tiền</mat-label>
+        <input matInput [placeholder]="defaultMoneys" [(ngModel)]="moneyInput" (ngModelChange)="parseMoneyInput()">
+        <mat-hint>Cách nhau bằng dấu phẩy</mat-hint>
+      </mat-form-field>
+    </p>
+  </div>
+  <div style="display: flex;">
+    <span style="flex: 1 1 auto;"></span>
+    <button mat-raised-button color="primary" (click)="applySetting()">
+        Áp dụng
+    </button>
+  </div>
+</mat-expansion-panel>
+
+<div style="width: 98vw; margin: auto; margin-top: 0.5em;">
+  <ag-grid-angular #scoreTables class="ag-theme-quartz" style="height: calc(100vh - 150px);" [rowData]="rowData"
+  [gridOptions]="gridOptions"
     [columnDefs]="colDefs">
   </ag-grid-angular>
 </div>

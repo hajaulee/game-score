@@ -17,9 +17,20 @@ class GenericEditorAsRenderer {
     this.valueSpan = document.createElement('span');
     this.valueSpan.innerText = params.value ?? '';
 
-    this.inputField = document.createElement('input');
+
+    if (params.colDef.field == 'name') {
+      this.inputField = document.createElement('input');
+      this.inputField.type = params.colDef.type;
+    } else {
+      this.inputField = document.createElement('select');
+      params?.getOptions?.()?.forEach((option: any) => {
+        const optionEle = document.createElement('option');
+        optionEle.value = option;
+        optionEle.innerHTML = option;
+        this.inputField.appendChild(optionEle)
+      });
+    }
     this.inputField.className = "cell-input";
-    this.inputField.type = params.colDef.type;
     this.inputField.value = params.value;
     this.inputField.onchange = () => params.setValue(this.inputField.value);
   }
@@ -42,12 +53,19 @@ export class AppComponent implements OnInit {
 
   @ViewChild("scoreTables") scoreTables: AgGridAngular | undefined;
 
+  // Constants
   title = 'game-score';
-
+  defaultPlayes = "A, B, C, D, E";
+  defaultMoneys = "200, -20, -40, -60, -80"
 
   // Normal variables
+  settingOpened = true;
   editingModeEnabled = false;
   latestGame: string | undefined = 'score1';
+  moneyInput = this.defaultMoneys;
+  moneyOptions = this.moneyInput.split(",").map(it => Number(it.trim()));
+  playerInput = this.defaultPlayes;
+  players: string[] = [];
 
 
   //Ag grid
@@ -56,20 +74,26 @@ export class AppComponent implements OnInit {
   // Column Definitions: Defines the columns to be displayed.
   colDefs: ColDef[] = [
     {
-      headerName: "Tên", field: "name", pinned: 'left', width: 90, cellRenderer: GenericEditorAsRenderer,
-      cellRendererParams: {
-        shouldBeEditing: () => this.editingModeEnabled,
-      }
+      headerName: "Tên",
+      field: "name",
+      pinned: 'left',
+      width: 110,
+      autoHeight: false,
+      suppressMovable: true,
+      valueFormatter: (params) => params.data.name + "/" + params.data.sum
     },
-    {
-      headerName: "Tổng", field: "sum", width: 100, cellStyle: {'text-align': 'right'}
-    },
+    // {
+    //   headerName: "Tổng", field: "sum", pinned: 'left', width: 100, cellStyle: {'text-align': 'right'}, suppressMovable: true
+    // },
   ];
+
+  gridOptions = {
+  }
 
 
   ngOnInit(): void {
-    this.initColumns();
     this.loadData();
+    this.initColumns();
     this.toogleEditMode();
   }
 
@@ -79,10 +103,12 @@ export class AppComponent implements OnInit {
       field: `score${index + 1}`,
       width: 110,
       type: 'number',
+      suppressMovable: true,
       cellClass: (params) => params.colDef.field == this.latestGame ? 'latest-game' : '',
       cellRenderer: GenericEditorAsRenderer,
       cellRendererParams: {
         shouldBeEditing: () => this.editingModeEnabled,
+        getOptions: () => this.moneyOptions
       }
     }));
     this.colDefs = this.colDefs.concat(scoreCols);
@@ -94,14 +120,15 @@ export class AppComponent implements OnInit {
     this.saveData();
     this.updateLatestGame();
 
+    this.scoreTables?.api.ensureColumnVisible(this.latestGame!!, 'auto');
     this.scoreTables?.api.redrawRows();
   }
 
-  updateLatestGame(){
+  updateLatestGame() {
     this.latestGame = this.colDefs.map(col => col.field!!)
-    .filter(key => key.startsWith('score'))
-    .sort((a, b) => Number(b.slice(5)) - Number(a.slice(5)))
-    .find(key => this.rowData.some(row => !!row[key]));
+      .filter(key => key.startsWith('score'))
+      .sort((a, b) => Number(b.slice(5)) - Number(a.slice(5)))
+      .find(key => this.rowData.some(row => !!row[key]));
     this.latestGame = this.latestGame ? ('score' + (Number(this.latestGame.slice(5)) + 1)) : 'score1';
   }
 
@@ -121,19 +148,54 @@ export class AppComponent implements OnInit {
     })
   }
 
+  parseMoneyInput() {
+    this.moneyOptions = [0].concat(this.moneyInput?.split(",").map(it => Number(it.trim())));
+  }
+
+  parsePlayers() {
+    this.players = this.playerInput?.split(",").map(it => it.trim());
+  }
+
+  applySetting() {
+    this.settingOpened = false;
+    this.editingModeEnabled = false;
+    this.changePlayerNames();
+    this.scoreTables?.api.redrawRows();
+    this.saveData();
+  }
+
+  changePlayerNames() {
+    this.rowData = this.players.map((name, index) => {
+      const savedScore = this.rowData?.[index];
+      return {
+        sum: 0,
+        ...savedScore,
+        name: name,
+      }
+    });
+  }
+
   saveData() {
     localStorage.setItem("SCORES", JSON.stringify(this.rowData));
+    localStorage.setItem("PLAYERS", this.playerInput);
+    localStorage.setItem("MONEYS", this.moneyInput);
   }
 
   loadData() {
+    this.moneyInput = localStorage.getItem("MONEYS") ?? this.defaultMoneys;
+    this.playerInput = localStorage.getItem("PLAYERS") ?? this.defaultPlayes;
+    this.parsePlayers();
+    this.parseMoneyInput();
+
+
     const savedData = JSON.parse(localStorage.getItem("SCORES") ?? '[]');
-    this.rowData = Array(10).fill(null).map((_, index) => {
+    this.rowData = this.players.map((name, index) => {
       const savedScore = savedData?.[index];
       return {
-        name: `Name${index + 1}`,
         sum: 0,
-        ...savedScore
+        ...savedScore,
+        name: name,
       }
-    })
+    });
   }
 }

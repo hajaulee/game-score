@@ -5,6 +5,10 @@ import { AgGridAngular } from 'ag-grid-angular'; // Angular Data Grid Component
 import { AppComponent } from './app.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatButtonModule } from "@angular/material/button";
+import { MatExpansionModule } from '@angular/material/expansion';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { FormsModule } from '@angular/forms';
+import { MatInputModule } from '@angular/material/input';
 
 @NgModule({
   declarations: [
@@ -14,7 +18,11 @@ import { MatButtonModule } from "@angular/material/button";
     BrowserModule,
     AgGridAngular,
     BrowserAnimationsModule,
-    MatButtonModule
+    MatButtonModule,
+    MatExpansionModule,
+    MatFormFieldModule,
+    FormsModule,
+    MatInputModule
   ],
   providers: [],
   bootstrap: [AppComponent]
