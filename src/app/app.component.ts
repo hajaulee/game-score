@@ -87,8 +87,6 @@ export class AppComponent implements OnInit {
     // },
   ];
 
-  gridOptions = {
-  }
 
 
   ngOnInit(): void {
